@@ -7,8 +7,7 @@ const usersFile = path.join('.', 'data', 'users.json');
 usersRouter.get('/users', (req, res) => {
   fs.readFile(usersFile, { encoding: 'utf8' }, (err, data) => {
     if (err) {
-      console.log(err);
-      return;
+      res.status(500).send({ message: 'Ошибка чтения файла' });
     }
 
     res.send(JSON.parse(data));
@@ -18,8 +17,7 @@ usersRouter.get('/users', (req, res) => {
 usersRouter.get('/users/:_id', (req, res) => {
   fs.readFile(usersFile, { encoding: 'utf8' }, (err, data) => {
     if (err) {
-      console.log(err);
-      return;
+      res.status(500).send({ message: 'Ошибка чтения файла' });
     }
 
     const user = JSON.parse(data).find((item) => item._id === req.params._id);
