@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
       validator(v) {
         return regex.test(v);
       },
-      message: (props) => `${props.value} is not a valid phone number!`,
+      message: (props) => `${props.value} is not a valid link!`,
     },
   },
 });
