@@ -1,31 +1,16 @@
-const fs = require('fs');
-const path = require('path');
-const usersRouter = require('express').Router();
+const router = require('express').Router();
+const {
+  getUsers, getUser, createUser, updateUser, updateUserAvatar,
+} = require('../controllers/users');
 
-const usersFile = path.join('.', 'data', 'users.json');
+router.get('/users', getUsers);
 
-usersRouter.get('/users', (req, res) => {
-  fs.readFile(usersFile, { encoding: 'utf8' }, (err, data) => {
-    if (err) {
-      res.status(500).send({ message: 'Ошибка чтения файла' });
-    }
+router.get('/users/:_id', getUser);
 
-    res.send(JSON.parse(data));
-  });
-});
+router.post('/users', createUser);
 
-usersRouter.get('/users/:_id', (req, res) => {
-  fs.readFile(usersFile, { encoding: 'utf8' }, (err, data) => {
-    if (err) {
-      res.status(500).send({ message: 'Ошибка чтения файла' });
-    }
+router.patch('/users/me', updateUser);
 
-    const user = JSON.parse(data).find((item) => item._id === req.params._id);
-    if (!user) {
-      res.status(404).send({ message: 'Нет пользователя с таким id' });
-    }
-    res.send(user);
-  });
-});
+router.patch('/users/me/avatar', updateUserAvatar);
 
-module.exports = usersRouter;
+module.exports = router;
