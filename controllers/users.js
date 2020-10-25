@@ -1,33 +1,63 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-err');
+const UnauthorizedError = require('../errors/unauthorized-err');
 
-module.exports.getUsers = (req, res) => User.find({})
+module.exports.getUsers = (req, res, next) => User.find({})
   .then((users) => res.status(200).send(users))
-  .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+  .catch(next);
 
-module.exports.getUser = (req, res) => User.findById(req.params._id)
-  .orFail(new Error('CastError'))
-  .then((user) => res.status(200).send(user))
-  .catch((err) => {
-    if (err.message === 'CastError') {
-      return res.status(404).send({ message: 'Карточка или пользователь не найден' });
+module.exports.getUser = (req, res, next) => User.findById(req.params._id)
+  .then((user) => {
+    if (!user) {
+      throw new NotFoundError('Карточка или пользователь не найден');
     }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
-  });
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+    res.status(200).send(user);
+  })
+  .catch(next);
 
-  return User.create({ name, about, avatar })
-    .then((newUser) => res.status(200).send(newUser))
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((newUser) => {
+      res.status(200).send({
+        _id: newUser._id,
+        email: newUser.email,
+      });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные' });
+        throw new BadRequestError('Переданы некорректные данные');
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.loginUser = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      res.status(200).send({
+        token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
+      });
+    })
+    .catch(() => {
+      throw new UnauthorizedError('Ошибка авторизации');
+    })
+    .catch(next);
+};
+
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   return User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
@@ -35,16 +65,16 @@ module.exports.updateUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.message === 'CastError') {
-        return res.status(404).send({ message: 'Карточка или пользователь не найден' });
+        throw new NotFoundError('Карточка или пользователь не найден');
       }
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные' });
+        throw new BadRequestError('Переданы некорректные данные');
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   return User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
@@ -52,11 +82,11 @@ module.exports.updateUserAvatar = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.message === 'CastError') {
-        return res.status(404).send({ message: 'Карточка или пользователь не найден' });
+        throw new NotFoundError('Карточка или пользователь не найден');
       }
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные' });
+        throw new BadRequestError('Переданы некорректные данные');
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };

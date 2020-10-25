@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
+const { regexUrl } = require('../middlewares/validation');
 
-const regex = /[-a-zA-Z0-9@:%_+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&//=]*)?/gi;
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator(v) {
-        return regex.test(v);
+        return regexUrl.test(v);
       },
       message: (props) => `${props.value} is not a valid link!`,
     },
