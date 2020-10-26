@@ -7,7 +7,7 @@ const { updateUserValidation, updateUserAvatarValidation } = require('../middlew
 
 router.get('/users', getUsers);
 
-router.get('/users/:_id', getUser);
+router.get('/users/me', getUser);
 
 router.patch('/users/me', celebrate(updateUserValidation), updateUser);
 

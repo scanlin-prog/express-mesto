@@ -10,7 +10,7 @@ const { registerValidation, loginValidation } = require('./middlewares/validatio
 const userRoutes = require('./routes/users.js');
 const cardRoutes = require('./routes/cards.js');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
 const app = express();
 
