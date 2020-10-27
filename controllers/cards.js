@@ -20,9 +20,17 @@ module.exports.createCard = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.deleteCard = (req, res, next) => Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCard = (req, res, next) => Card.findById(req.params.cardId)
   .orFail(new Error('CastError'))
-  .then((card) => res.status(200).send(card))
+  .then((card) => {
+    if (card.owner.equals(req.user._id)) {
+      Card.findByIdAndRemove(req.params.cardId)
+        .then((currentCard) => res.status(200).send(currentCard))
+        .catch((err) => console.log(err));
+    } else {
+      res.status(403).send({ message: 'Forbidden' });
+    }
+  })
   .catch((err) => {
     if (err.message === 'CastError') {
       throw new NotFoundError('Карточка или пользователь не найден');
@@ -33,11 +41,23 @@ module.exports.deleteCard = (req, res, next) => Card.findByIdAndRemove(req.param
 module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(req.params.cardId,
   { $addToSet: { likes: req.user._id } },
   { new: true })
+  .orFail(new Error('CastError'))
   .then((card) => res.status(200).send(card))
+  .catch((err) => {
+    if (err.message === 'CastError') {
+      throw new NotFoundError('Карточка или пользователь не найден');
+    }
+  })
   .catch(next);
 
 module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(req.params.cardId,
   { $pull: { likes: req.user._id } },
   { new: true })
+  .orFail(new Error('CastError'))
   .then((card) => res.status(200).send(card))
+  .catch((err) => {
+    if (err.message === 'CastError') {
+      throw new NotFoundError('Карточка или пользователь не найден');
+    }
+  })
   .catch(next);

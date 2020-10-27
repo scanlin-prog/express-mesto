@@ -40,6 +40,18 @@ const creatCardValidation = {
   }),
 };
 
+const userIdValidation = {
+  params: Joi.object().keys({
+    _id: Joi.string().hex().length(24),
+  }),
+};
+
+const cardIdValidation = {
+  params: Joi.object().keys({
+    cardId: Joi.string().hex().length(24),
+  }),
+};
+
 module.exports = {
   regexUrl,
   registerValidation,
@@ -47,4 +59,6 @@ module.exports = {
   updateUserValidation,
   updateUserAvatarValidation,
   creatCardValidation,
+  userIdValidation,
+  cardIdValidation,
 };

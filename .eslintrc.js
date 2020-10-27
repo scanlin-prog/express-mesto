@@ -16,5 +16,6 @@ module.exports = {
       'error',
       'never',
     ],
+    'no-unused-vars': ['error', { argsIgnorePattern: '^next$' }],
   },
 };

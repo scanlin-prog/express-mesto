@@ -10,7 +10,7 @@ const { registerValidation, loginValidation } = require('./middlewares/validatio
 const userRoutes = require('./routes/users.js');
 const cardRoutes = require('./routes/cards.js');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
 const app = express();
 
@@ -28,6 +28,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
 app.post('/signup', celebrate(registerValidation), createUser);
 app.post('/signin', celebrate(loginValidation), loginUser);
 
@@ -35,9 +41,6 @@ app.use(auth);
 
 app.use('/', userRoutes);
 app.use('/', cardRoutes);
-app.all('/*', (req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
-});
 
 app.use(errorLogger);
 
